@@ -14,23 +14,41 @@ public static class ConfigT4Helper
         ConfigT4Option[] options
     )
     {
-        var configs = await Task.WhenAll(
-            options.Select(option => LoadConfigFromConsul(consulEndpoint, option.ModuleName)));
+        var moduleConfigs = await Task.WhenAll(options.Select(async option =>
+        {
+            using var httpClient = new HttpClient();
+            var responseStream = await httpClient.GetStreamAsync($"{consulEndpoint}/v1/kv/{option.ModuleName}");
+            var response = await JsonNode.ParseAsync(responseStream);
 
-        return GenerateConfigCode(namespaceName, options, configs);
+            var base64ModuleConfigString = response!.AsArray()[0]!["Value"]!.ToString();
+            using var decodedModuleConfigStream = new MemoryStream(Convert.FromBase64String(base64ModuleConfigString));
+            var moduleConfig = await JsonNode.ParseAsync(decodedModuleConfigStream);
+
+            return moduleConfig!.AsObject();
+        }));
+
+        return GenerateConfigCode(namespaceName, options, moduleConfigs);
     }
 
-    private static async Task<JsonObject> LoadConfigFromConsul(string consulEndpoint, string moduleName)
+    public static async Task<string> GenerateConfigCodeFromJsonFile(
+        string jsonFilePath,
+        string namespaceName,
+        ConfigT4Option[] options
+    )
     {
-        using var httpClient = new HttpClient();
-        var responseStream = await httpClient.GetStreamAsync($"{consulEndpoint}/v1/kv/{moduleName}");
-        var response = await JsonNode.ParseAsync(responseStream);
+        var jsonFileStream = File.OpenRead(jsonFilePath);
+        var config = await JsonNode.ParseAsync(jsonFileStream);
+        var moduleConfigs = options.Select(option =>
+        {
+            var moduleConfig = config?[option.ModuleName];
 
-        var base64ConfigString = response!.AsArray()[0]!["Value"]!.ToString();
-        using var decodedConfigStream = new MemoryStream(Convert.FromBase64String(base64ConfigString));
-        var config = await JsonNode.ParseAsync(decodedConfigStream);
+            if (moduleConfig == null)
+                throw new ArgumentException($"Could not found {option.ModuleName} property in {jsonFilePath}");
 
-        return config!.AsObject();
+            return moduleConfig.AsObject();
+        }).ToArray();
+
+        return GenerateConfigCode(namespaceName, options, moduleConfigs);
     }
 
     private static string GenerateConfigCode(string namespaceName, ConfigT4Option[] options, JsonObject[] configs)
