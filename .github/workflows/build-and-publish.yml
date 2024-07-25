@@ -13,13 +13,17 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x'  
-    - run: dotnet tool install --global GitVersion.Tool
-    - id: gitversion
-      run: dotnet-gitversion /output json /showvariable FullSemVer
+    - uses: gittools/actions/gitversion/setup@v2.0.1
+      with:
+        versionSpec: '6.x'
+    - uses: gittools/actions/gitversion/execute@v2.0.1
+      id: gitversion
+      with:
+        useConfigFile: true
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore
     - run: dotnet test --verbosity normal --no-build
-    - run: dotnet pack --configuration Release --no-build /p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }}
+    - run: dotnet pack --configuration Release --no-build /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
     - run: dotnet nuget push **/bin/Release/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
@@ -29,6 +33,6 @@ jobs:
           github.rest.git.createRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: 'refs/tags/v${{ steps.gitversion.outputs.FullSemVer }}',
+            ref: 'refs/tags/v${{ steps.gitversion.outputs.fullSemVer }}',
             sha: context.sha
           })
