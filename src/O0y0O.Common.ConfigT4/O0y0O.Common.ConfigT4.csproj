@@ -12,10 +12,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="lib/net462/System.Text.Encodings.Web.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>lib/net462/</PackagePath>
     </None>
     <None Update="lib/net462/System.Text.Json.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>lib/net462/</PackagePath>
     </None>
