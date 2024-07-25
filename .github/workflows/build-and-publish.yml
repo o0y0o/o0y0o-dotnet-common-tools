@@ -15,7 +15,7 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x'
-    - run: choco install dotnet4.7.2 --no-progress
+    - run: choco install dotnet4.6.2 --no-progress
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore
     - run: dotnet test --verbosity normal --no-build
