@@ -17,8 +17,8 @@ jobs:
         dotnet-version: '8.x'
     - run: choco install dotnet4.7.2 --no-progress
     - run: dotnet restore
-    - run: dotnet msbuild /p:Configuration=Release
-    - run: vstest.console.exe **\*Tests.dll --logger:trx
+    - run: dotnet build --configuration Release --no-restore
+    - run: dotnet test --verbosity normal --no-build
     - uses: gittools/actions/gitversion/setup@v2.0.1
       with:
         versionSpec: '6.x'
