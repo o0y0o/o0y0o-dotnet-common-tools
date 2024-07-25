@@ -27,7 +27,7 @@ jobs:
       with:
         useConfigFile: true
     - run: dotnet pack --configuration Release --no-build /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
-    - run: dotnet nuget push "**/bin/Release/*.nupkg" -k $NUGET_API_KEY
+    - run: dotnet nuget push "**/bin/Release/*.nupkg" -k ${{ secrets.NUGET_API_KEY }}
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     - uses: actions/github-script@v6
