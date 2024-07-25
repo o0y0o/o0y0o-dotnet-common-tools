@@ -174,7 +174,7 @@ public static class ConfigT4Helper
         ConfigT4Option option,
         StringBuilder code,
         string configPath,
-        JsonNode configValue,
+        JsonNode? configValue,
         int indents
     )
     {
