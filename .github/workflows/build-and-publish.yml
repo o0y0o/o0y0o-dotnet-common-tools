@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
       with:
@@ -15,6 +15,10 @@ jobs:
     - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.x'
+    - run: choco install dotnet4.7.2 --no-progress
+    - run: dotnet restore
+    - run: msbuild /p:Configuration=Release
+    - run: vstest.console.exe **\*Tests.dll --logger:trx
     - uses: gittools/actions/gitversion/setup@v2.0.1
       with:
         versionSpec: '6.x'
@@ -22,9 +26,6 @@ jobs:
       id: gitversion
       with:
         useConfigFile: true
-    - run: dotnet restore
-    - run: dotnet build --configuration Release --no-restore
-    - run: dotnet test --verbosity normal --no-build
     - run: dotnet pack --configuration Release --no-build /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
     - run: dotnet nuget push **/bin/Release/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
       env:
