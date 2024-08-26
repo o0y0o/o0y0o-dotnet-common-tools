@@ -217,9 +217,10 @@ public static class ConfigT4Helper
 
             default:
                 var arrayItemType = GetValueType(firstArrayItem!.AsValue());
+                AppendCode(code, indents, $"public const string {propertyName}SectionKey = \"{configPath}\";");
                 AppendCode(code, indents, $"private static {arrayItemType}[]? {fieldName};");
                 AppendCode(code, indents,
-                    $"public static {arrayItemType}[] {propertyName} => {fieldName} ??= GetSection<{arrayItemType}[]>(\"{configPath}\");");
+                    $"public static {arrayItemType}[] {propertyName} => {fieldName} ??= GetSection<{arrayItemType}[]>({propertyName}SectionKey);");
 
                 break;
         }
@@ -231,10 +232,11 @@ public static class ConfigT4Helper
         var propertyType = GetValueType(value);
         var propertyName = NormalizeMemberName(value.GetPropertyName());
         var fieldName = GetFieldName(propertyName);
+        AppendCode(code, indents, $"public const string {propertyName}SectionKey = \"{configPath}\";");
         AppendCode(code, indents,
             $"private static {propertyType}? {fieldName};");
         AppendCode(code, indents,
-            $"public static {propertyType} {propertyName} => {fieldName} ??= GetValue<{propertyType}>(\"{configPath}\");");
+            $"public static {propertyType} {propertyName} => {fieldName} ??= GetValue<{propertyType}>({propertyName}SectionKey);");
     }
 
     private static string GetValueType(JsonValue value)
