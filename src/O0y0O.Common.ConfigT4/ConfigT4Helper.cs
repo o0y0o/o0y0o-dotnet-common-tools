@@ -165,6 +165,8 @@ public static class ConfigT4Helper
         indents++;
         AppendCode(code, indents, "private static T? _value;");
         AppendCode(code, indents, $"public static T Get() => _value ??= GetSection<T>({className}SectionKey);");
+        AppendCode(code, indents,
+            $"public static IConfigurationSection GetSection() => Instance.GetSection({className}SectionKey);");
         indents--;
         AppendCode(code, indents, "}");
     }
