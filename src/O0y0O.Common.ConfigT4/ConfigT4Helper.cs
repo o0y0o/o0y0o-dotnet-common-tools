@@ -14,21 +14,21 @@ public static class ConfigT4Helper
         ConfigT4Option[] options
     )
     {
-        var moduleConfigs = await Task.WhenAll(options.Select(async option =>
+        var sectionConfigs = await Task.WhenAll(options.Select(async option =>
         {
             using var httpClient = new HttpClient();
-            var responseStream = await httpClient.GetStreamAsync($"{consulEndpoint}/v1/kv/{option.ModuleName}");
+            var responseStream = await httpClient.GetStreamAsync($"{consulEndpoint}/v1/kv/{option.SectionKey}");
             var response = await JsonNode.ParseAsync(responseStream);
 
             var base64ModuleConfigString = response!.AsArray()[0]!["Value"]!.ToString();
             using var decodedModuleConfigStream =
                 new MemoryStream(Convert.FromBase64String(base64ModuleConfigString));
-            var moduleConfig = await JsonNode.ParseAsync(decodedModuleConfigStream);
+            var sectionConfig = await JsonNode.ParseAsync(decodedModuleConfigStream);
 
-            return moduleConfig!.AsObject();
+            return sectionConfig!.AsObject();
         }));
 
-        return GenerateConfigCode(namespaceName, options, moduleConfigs);
+        return GenerateConfigCode(namespaceName, options, sectionConfigs);
     }
 
     public static async Task<string> GenerateConfigCodeFromJsonFile(
@@ -39,17 +39,17 @@ public static class ConfigT4Helper
     {
         var jsonFileStream = File.OpenRead(jsonFilePath);
         var config = await JsonNode.ParseAsync(jsonFileStream);
-        var moduleConfigs = options.Select(option =>
+        var sectionConfigs = options.Select(option =>
         {
-            var moduleConfig = config?[option.ModuleName];
+            var sectionConfig = config?[option.SectionKey];
 
-            if (moduleConfig == null)
-                throw new ArgumentException($"Could not found {option.ModuleName} property in {jsonFilePath}");
+            if (sectionConfig == null)
+                throw new ArgumentException($"Could not found {option.SectionKey} property in {jsonFilePath}");
 
-            return moduleConfig.AsObject();
+            return sectionConfig.AsObject();
         }).ToArray();
 
-        return GenerateConfigCode(namespaceName, options, moduleConfigs);
+        return GenerateConfigCode(namespaceName, options, sectionConfigs);
     }
 
     private static string GenerateConfigCode(string namespaceName, ConfigT4Option[] options, JsonObject[] configs)
@@ -87,7 +87,7 @@ public static class ConfigT4Helper
             var option = options[i];
             var config = configs[i];
             if (i != 0) code.AppendLine();
-            AppendSectionConfigCode(option, code, option.ModuleName, config);
+            AppendSectionConfigCode(option, code, option.SectionName, config);
         }
 
         code.Append("}");
@@ -152,8 +152,12 @@ public static class ConfigT4Helper
         code.AppendLine($"{spaces}{codeToAppend}");
     }
 
-    private static void AppendGenericConfigCode(StringBuilder code, string sectionPath, string className,
-        int indents)
+    private static void AppendGenericConfigCode(
+        StringBuilder code,
+        string sectionPath,
+        string className,
+        int indents
+    )
     {
         AppendCode(code, indents, $"public const string {className}SectionKey = \"{sectionPath}\";");
         AppendCode(code, indents, $"public static class {className}<T>");
@@ -201,8 +205,12 @@ public static class ConfigT4Helper
         }
     }
 
-    private static void AppendArrayTypeConfigCode(StringBuilder code, string configPath, JsonArray array,
-        int indents)
+    private static void AppendArrayTypeConfigCode(
+        StringBuilder code,
+        string configPath,
+        JsonArray array,
+        int indents
+    )
     {
         var propertyName = NormalizeMemberName(array.GetPropertyName());
         var fieldName = GetFieldName(propertyName);
@@ -226,8 +234,12 @@ public static class ConfigT4Helper
         }
     }
 
-    private static void AppendValueTypeConfigCode(StringBuilder code, string configPath, JsonValue value,
-        int indents)
+    private static void AppendValueTypeConfigCode(
+        StringBuilder code,
+        string configPath,
+        JsonValue value,
+        int indents
+    )
     {
         var propertyType = GetValueType(value);
         var propertyName = NormalizeMemberName(value.GetPropertyName());
