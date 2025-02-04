@@ -114,7 +114,9 @@ public static class ConfigT4Helper
         AppendCode(code, indents, "{");
         indents++;
 
-        var isFirstLine = true;
+        AppendCode(code, indents,
+            $"public static IConfigurationSection Get() => Instance.GetSection({className}SectionKey);");
+
         foreach (var config in sectionValue)
         {
             var configPath = $"{sectionPath}:{config.Key}";
@@ -122,10 +124,8 @@ public static class ConfigT4Helper
             if (!(IsMatchAnyPattern(configPath, option.IncludePathPatterns) ?? true)) continue;
             if (IsMatchAnyPattern(configPath, option.ExcludePathPatterns) ?? false) continue;
 
-            if (!isFirstLine) code.AppendLine();
+            code.AppendLine();
             AppendConfigCode(option, code, configPath, config.Value, indents);
-
-            isFirstLine = false;
         }
 
         indents--;
@@ -165,8 +165,6 @@ public static class ConfigT4Helper
         indents++;
         AppendCode(code, indents, "private static T? _value;");
         AppendCode(code, indents, $"public static T Get() => _value ??= GetSection<T>({className}SectionKey);");
-        AppendCode(code, indents,
-            $"public static IConfigurationSection GetSection() => Instance.GetSection({className}SectionKey);");
         indents--;
         AppendCode(code, indents, "}");
     }
