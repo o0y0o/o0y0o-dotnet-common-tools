@@ -20,7 +20,7 @@ jobs:
     - run: dotnet test --verbosity normal --no-build
     - uses: gittools/actions/gitversion/setup@v2.0.1
       with:
-        versionSpec: '6.x'
+        versionSpec: '6.0.x'
     - uses: gittools/actions/gitversion/execute@v2.0.1
       id: gitversion
       with:
