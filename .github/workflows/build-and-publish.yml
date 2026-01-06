@@ -24,7 +24,7 @@ jobs:
     - uses: gittools/actions/gitversion/execute@v4.2.0
       id: gitversion
       with:
-        useConfigFile: true
+        configFilePath: GitVersion.yml
     - run: dotnet pack --configuration Release --no-build /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
     - run: dotnet nuget push "**/bin/Release/*.nupkg" -k ${{ secrets.NUGET_API_KEY }} -s "https://api.nuget.org/v3/index.json"
       env:
