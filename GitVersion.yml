@@ -1,2 +1,7 @@
 workflow: GitHubFlow/v1
 mode: ContinuousDeployment
+next-version: 2.0.0
+tag-prefix: '[vV]?'
+branches:
+  main:
+    tag: rc.{increment}
